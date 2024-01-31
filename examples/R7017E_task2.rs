@@ -30,6 +30,7 @@ fn task_1() {
 }
 
 fn task_2() {
+    let pose:Pose<Sym,0,1> = Pose::rot(rotz(Sym::zero()).unwrap());
     let p1: Pose<Sym, 1, 2> = DHBuilder::new()
         .a(0f32)
         .theta(sym!("q1"))
@@ -84,7 +85,10 @@ fn task_2() {
     // This is where the idea falls appart. I should probably use matlab for this. Or write some
     // better
     // optimizations
-    println!("{}",p1*p2*p3*p4*p5*p6);
+    let res = (pose*p1*p2*p3*p4*p5*p6).opt().opt();
+    println!("{}",res);
+    println!("{}",res.fk().to_matrix());
+
 }
 
 fn main() {

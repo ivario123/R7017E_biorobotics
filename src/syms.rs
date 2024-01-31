@@ -1,17 +1,22 @@
+
+pub mod opt;
 pub mod display;
 use core::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Rem, RemAssign, Sub, SubAssign};
 pub use display::*;
+pub use opt::*;
 use matrs::{matrix::rotations::Trig, CompliantNumerical};
-use std::boxed;
+use std::{boxed, f32::consts::PI};
 
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub enum Operation {
     Sqrt(Sym),
     Add(Sym, Sym),
+    Sum(Vec<Sym>),
     Sub(Sym, Sym),
     UnSub(Sym),
     Div(Sym, Sym),
     Mul(Sym, Sym),
+    Prod(Vec<Sym>),
     Rem(Sym, Sym),
     Cos(Sym),
     Sin(Sym),
@@ -78,6 +83,11 @@ impl Trig for Sym {
                 Operation::Cos(el) => return el,
                 _ => {}
             },
+            // Exact values
+            Self::Number(n) => {
+                return Self::Number(n.sin())
+
+            },
             _ => {}
         }
         Self::Operation(Box::new(Operation::Sin(self)))
@@ -88,6 +98,10 @@ impl Trig for Sym {
                 Operation::Sin(el) => return el,
                 _ => {}
             },
+            // Exact values
+            Self::Number(n) => {
+                return Self::Number(n.cos())
+                            },
             _ => {}
         }
         Self::Operation(Box::new(Operation::Cos(self)))
@@ -97,12 +111,18 @@ impl Trig for Sym {
 impl Add<f32> for Sym {
     type Output = Self;
     fn add(self, rhs: f32) -> Self::Output {
+        if let Sym::Number(n) = &self{
+            return Self::Number(n+rhs);
+        }
         self + Sym::Number(rhs)
     }
 }
 impl Sub<f32> for Sym {
     type Output = Self;
     fn sub(self, rhs: f32) -> Self::Output {
+        if let Sym::Number(n) = &self{
+            return Self::Number(n-rhs);
+        }
         self - Sym::Number(rhs)
     }
 }
@@ -110,6 +130,9 @@ impl Sub<f32> for Sym {
 impl Div<f32> for Sym {
     type Output = Self;
     fn div(self, rhs: f32) -> Self::Output {
+        if let Sym::Number(n) = &self{
+            return Self::Number(n/rhs);
+        }
         self / Sym::Number(rhs)
     }
 }
@@ -117,6 +140,9 @@ impl Div<f32> for Sym {
 impl Mul<f32> for Sym {
     type Output = Self;
     fn mul(self, rhs: f32) -> Self::Output {
+        if let Sym::Number(n) = &self{
+            return Self::Number(n*rhs);
+        }
         self * Sym::Number(rhs)
     }
 }
@@ -137,6 +163,12 @@ impl Add for Sym {
         if rhs == Self::Number(0f32) {
             return self;
         }
+        match (&self,&rhs) {
+            (Sym::Number(n1),Sym::Number(n2)) =>return Sym::Number(n1+n2),
+            _ => {}
+        }
+
+
         Sym::Operation(Box::new(Operation::Add(self, rhs)))
     }
 }
@@ -149,6 +181,12 @@ impl Sub for Sym {
         if self == Self::Number(0f32) {
             return Self::Operation(Box::new(Operation::UnSub(rhs)));
         }
+        match (&self,&rhs) {
+            (Sym::Number(n1),Sym::Number(n2)) =>return Sym::Number(n1-n2),
+            _ => {}
+        }
+
+
         Sym::Operation(Box::new(Operation::Sub(self, rhs)))
     }
 }
@@ -170,6 +208,12 @@ impl Div for Sym {
                 lhs = lhs.sing_inversion();
             }
         }
+        match (&lhs,&rhs) {
+            (Sym::Number(n1),Sym::Number(n2)) =>return Sym::Number(n1/n2),
+            _ => {}
+        }
+
+
         Sym::Operation(Box::new(Operation::Div(lhs, rhs)))
     }
 }
@@ -200,6 +244,10 @@ impl Mul for Sym {
         }
         if rhs == Self::Number(1f32) {
             return lhs;
+        }
+        match (&lhs,&rhs) {
+            (Sym::Number(n1),Sym::Number(n2)) =>return Sym::Number(n1*n2),
+            _ => {}
         }
 
         Sym::Operation(Box::new(Operation::Mul(lhs, rhs)))

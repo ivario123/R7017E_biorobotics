@@ -232,3 +232,10 @@ impl<'a, T: CompliantNumerical + Trig, const PREV: usize, const CURR: usize>
         &self.rpr
     }
 }
+impl<'a, T: CompliantNumerical + Trig, const PREV: usize, const CURR: usize>
+    Into<&'a mut Matrix<T, 4, 4>> for &'a mut Pose<T, PREV, CURR>
+{
+    fn into(self) -> &'a mut Matrix<T, 4, 4> {
+        &mut self.rpr
+    }
+}

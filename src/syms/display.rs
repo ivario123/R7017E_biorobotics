@@ -22,9 +22,11 @@ impl Display for Operation {
             Self::Cos(s) => write!(f, "cos({})", s),
             Self::Rem(s1, s2) => write!(f, "{s1}%{s2}"),
             Self::Mul(s1, s2) => write!(f, "({}*{})", s1, s2),
+            Self::Prod(els) => write!(f,"({})", els.iter().map(|e| format!("{}",e)).collect::<Vec<String>>().join("*")),
             Self::Div(s1, s2) => write!(f, "({}/{})", s1, s2),
             Self::Sub(s1, s2) => write!(f, "({}-{})", s1, s2),
             Self::Add(s1, s2) => write!(f, "({}+{})", s1, s2),
+            Self::Sum(els) => write!(f,"({})", els.iter().map(|e| format!("{}",e)).collect::<Vec<String>>().join("+")),
             Self::Sqrt(s) => write!(f, "sqrt({})", s),
             Self::UnSub(s) => write!(f, "-{s}"),
         }
