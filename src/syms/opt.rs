@@ -162,28 +162,28 @@ impl OptInner for Operation{
                         match (*lhs.clone(),*rhs.clone()) {
                             (Self::Mul(lhs_l, lhs_r),Self::Mul(rhs_l, rhs_r)) => {
                                 println!("Squashing");
-                                *self = Self::ChainMul(vec![lhs_l,lhs_r,rhs_l,rhs_r])
+                                *self = Self::Prod(vec![lhs_l,lhs_r,rhs_l,rhs_r])
                             }
                             (s,Self::Mul(rhs_l, rhs_r)) => {
                                 println!("Squashing");
-                                *self = Self::ChainMul(vec![Sym::Operation(Box::new(s)),rhs_l,rhs_r])
+                                *self = Self::Prod(vec![Sym::Operation(Box::new(s)),rhs_l,rhs_r])
 
                             }
                             (Self::Mul(lhs_l, lhs_r),s) => {
                                 println!("Squashing");
-                                *self = Self::ChainMul(vec![lhs_l,lhs_r,Sym::Operation(Box::new(s))])
+                                *self = Self::Prod(vec![lhs_l,lhs_r,Sym::Operation(Box::new(s))])
                             }
-                            (Self::ChainMul(mut sl),Self::ChainMul(sr)) => {
+                            (Self::Prod(mut sl),Self::ChainMul(sr)) => {
                                 sl.extend(sr);
-                                *self = Self::ChainMul(sl);
+                                *self = Self::Prod(sl);
                             }
-                            (Self::ChainMul(mut s),r) => {
+                            (Self::Prod(mut s),r) => {
                                 s.push(Sym::Operation(Box::new(r)));
-                                *self = Self::ChainMul(s);
+                                *self = Self::Prod(s);
                             }
-                            (l,Self::ChainMul(mut s)) => {
+                            (l,Self::Prod(mut s)) => {
                                 s.insert(0,Sym::Operation(Box::new(l)));
-                                *self = Self::ChainMul(s);
+                                *self = Self::Prod(s);
                             }
 
                             _ => {}
@@ -194,11 +194,11 @@ impl OptInner for Operation{
                         match *lhs_o.clone() {
                             Self::Mul(lhs_l, lhs_r)=> {
                                 println!("Squashing");
-                                *self = Self::ChainMul(vec![lhs_l,lhs_r,s.clone()]);
+                                *self = Self::Prod(vec![lhs_l,lhs_r,s.clone()]);
                             }
-                            Self::ChainMul(mut els) => {
+                            Self::Prod(mut els) => {
                                 els.push(s.clone());
-                                *self = Self::ChainMul(els.clone())
+                                *self = Self::Prod(els.clone())
                             }
                             _ => {}
                         }
@@ -209,11 +209,11 @@ impl OptInner for Operation{
                         match *rhs_o.clone() {
                             Self::Mul(rhs_l, rhs_r)=> {
                                 println!("Squashing");
-                                *self = Self::ChainMul(vec![s.clone(),rhs_l,rhs_r]);
+                                *self = Self::Prod(vec![s.clone(),rhs_l,rhs_r]);
                             }
-                            Self::ChainMul(mut els) => {
+                            Self::Prod(mut els) => {
                                 els.insert(0,s.clone());
-                                *self = Self::ChainMul(els.clone())
+                                *self = Self::Prod(els.clone())
                             }
                             _ => {}
                         }
