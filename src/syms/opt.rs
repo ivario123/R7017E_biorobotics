@@ -173,7 +173,7 @@ impl OptInner for Operation{
                                 println!("Squashing");
                                 *self = Self::Prod(vec![lhs_l,lhs_r,Sym::Operation(Box::new(s))])
                             }
-                            (Self::Prod(mut sl),Self::ChainMul(sr)) => {
+                            (Self::Prod(mut sl),Self::Prod(sr)) => {
                                 sl.extend(sr);
                                 *self = Self::Prod(sl);
                             }
