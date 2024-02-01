@@ -30,7 +30,6 @@ impl<const PREV:usize,const CURR:usize> OptInner for Pose<Sym,PREV,CURR>{
         let m:&'a mut Matrix<Sym,4,4> = self.into();
         for row in 0..4{
             for col in 0..4{
-                println!("Opting :{}",m[(row,col)]);
                 let _ = m[(row,col)].opt_inner();
             }
         }
@@ -42,7 +41,6 @@ impl<const PREV:usize,const CURR:usize> Opt for Pose<Sym,PREV,CURR>{}
 impl Opt for Sym{}
 impl OptInner for Sym{
     fn opt_inner<'a>(&'a mut self) -> Vec<&'a Sym> {
-        println!("Opting sym : {}",self);
         
         match self{
             Sym::Number(_) => {vec![]},
@@ -57,8 +55,6 @@ impl OptInner for Sym{
 impl Opt for Operation{}
 impl OptInner for Operation{
     fn opt_inner<'a>(&'a mut self) -> Vec<&'a Sym> {
-        println!("Opting op : {:?}",self); 
-        let prev = self.clone();
         match self{
             Self::Add(lhs,rhs) => {
                 let _ = lhs.opt_inner();
@@ -155,22 +151,17 @@ impl OptInner for Operation{
                     }
                     _ => {}
                 }
-                println!("mul these two {:?},{:?}",lhs,rhs);
                 match (lhs,rhs)  {
                     (Sym::Operation(lhs),Sym::Operation(rhs)) => {
-                        println!("both was mul");
                         match (*lhs.clone(),*rhs.clone()) {
                             (Self::Mul(lhs_l, lhs_r),Self::Mul(rhs_l, rhs_r)) => {
-                                println!("Squashing");
                                 *self = Self::Prod(vec![lhs_l,lhs_r,rhs_l,rhs_r])
                             }
                             (s,Self::Mul(rhs_l, rhs_r)) => {
-                                println!("Squashing");
                                 *self = Self::Prod(vec![Sym::Operation(Box::new(s)),rhs_l,rhs_r])
 
                             }
                             (Self::Mul(lhs_l, lhs_r),s) => {
-                                println!("Squashing");
                                 *self = Self::Prod(vec![lhs_l,lhs_r,Sym::Operation(Box::new(s))])
                             }
                             (Self::Prod(mut sl),Self::Prod(sr)) => {
@@ -190,10 +181,8 @@ impl OptInner for Operation{
                         }
                     }
                     (Sym::Operation(lhs_o),s) => {
-                        println!("LHS was op : {:?}",lhs_o);
                         match *lhs_o.clone() {
                             Self::Mul(lhs_l, lhs_r)=> {
-                                println!("Squashing");
                                 *self = Self::Prod(vec![lhs_l,lhs_r,s.clone()]);
                             }
                             Self::Prod(mut els) => {
@@ -205,10 +194,8 @@ impl OptInner for Operation{
 
                     }
                     (s,Sym::Operation(rhs_o)) => {
-                        println!("LHS was op : {:?}",rhs_o);
                         match *rhs_o.clone() {
                             Self::Mul(rhs_l, rhs_r)=> {
-                                println!("Squashing");
                                 *self = Self::Prod(vec![s.clone(),rhs_l,rhs_r]);
                             }
                             Self::Prod(mut els) => {
@@ -244,8 +231,6 @@ impl OptInner for Operation{
 
 
         }
-        println!("before opt : {}",prev);
-        println!("after opt : {}",self);
         vec![]
 
     }

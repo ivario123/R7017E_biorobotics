@@ -1,15 +1,50 @@
 use matrs::{
     matrix::helpers::rotations::*, matrix::rotations::Trig, predule::*, CompliantNumerical,
 };
-use std::fmt::Alignment;
+use std::fmt::{Alignment, Display};
 use std::ops::Mul;
 
+use crate::decore::decorators::ToTex;
 use crate::pose::{Coord, Pose};
 
 // pub struct Link<const IDX: usize,L:CompliantNumerical+Trig,> {
 //      length:
 // }
-//
+
+
+pub struct DHTable{
+    rows : Vec<[String;4]>
+}
+
+impl DHTable{
+    fn new<
+    Theta: CompliantNumerical + Trig+ToTex,    
+    D: CompliantNumerical + Trig+ToTex,
+    A: CompliantNumerical + Trig+ToTex,
+    Alpha: CompliantNumerical + Trig+ToTex>(theta:&Theta,d:&D,a:&A,alpha:&Alpha) -> Self {
+        Self { rows: vec![[theta.to_tex(None),d.to_tex(None),a.to_tex(None),alpha.to_tex(None)]] }
+
+    }
+    pub fn extend(mut self,other:Self) -> Self{
+        self.rows.extend(other.rows);
+        self
+    }
+    pub fn to_tex(&self) -> String{
+
+        let mut ret:String = "\\begin{table}[H]\\label{table:DHParams}\\centering\n\t\\begin{tabular}{|c|c|c|c|c|}\\hline\n".to_string(); 
+
+        ret+="\t\t$j$\t&\t$\\theta$\t&\t$d$\t&\t$a$\t&\t$\\alpha$\t\\\\\\hline\n";
+        for (idx,row) in self.rows.iter().enumerate(){
+            ret += format!("\t\t${}$\t&\t${}$\t&\t${}$\t&\t${}$\t&\t${}$\\\\\n",idx+1,row[0],row[1],row[2],row[3]).as_str();
+        }
+        ret += "\t\\hline\n\t\\end{tabular}\n\t\\caption{good caption here}\n\\end{table}";
+
+        ret
+        
+
+    }
+}
+
 pub struct DHBuilder<
     const THETA: bool,
     const D: bool,
@@ -25,6 +60,7 @@ pub struct DHBuilder<
     a: Option<At>,
     alpha: Option<Alphat>,
 }
+
 pub struct DHParams<
     Theta: CompliantNumerical + Trig,
     D: CompliantNumerical + Trig,
@@ -150,6 +186,11 @@ impl<
             a: self.a.unwrap(),
             alpha: self.alpha.unwrap(),
         }
+    }
+    pub fn to_table(&self) -> DHTable
+        where Thetat:ToTex,Dt:ToTex,At:ToTex,Alphat:ToTex
+    {
+        DHTable::new(&self.theta.clone().unwrap(), &self.d.clone().unwrap(), &self.a.clone().unwrap(), &self.alpha.clone().unwrap())
     }
 }
 

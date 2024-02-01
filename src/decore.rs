@@ -33,7 +33,7 @@ pub mod decorators {
             ret
         }
     }
-    impl<T: CompliantNumerical + Display, const M: usize, const N: usize> ToTex for Matrix<T, M, N> {
+    impl<T: CompliantNumerical + ToTex, const M: usize, const N: usize> ToTex for Matrix<T, M, N> {
         fn to_tex(&self, identifier: Option<&'static str>) -> String {
             let has_identifer = identifier.is_some();
             let identifier = identifier.unwrap_or("");
@@ -48,9 +48,9 @@ pub mod decorators {
 
                 for (idx, el) in row.iter().enumerate() {
                     if idx < max {
-                        ret += format!("{el} & ").as_str();
+                        ret += format!("{} & ",el.to_tex(None)).as_str();
                     } else {
-                        ret += format!("{el}").as_str();
+                        ret += format!("{}",el.to_tex(None)).as_str();
                     }
                 }
                 ret += "\\\\\n";
@@ -83,13 +83,13 @@ pub mod decorators {
         }
     }
 
-    impl<T: CompliantNumerical + Display, const COUNT: usize> ToTex for Vector<T, COUNT> {
+    impl<T: CompliantNumerical + ToTex, const COUNT: usize> ToTex for Vector<T, COUNT> {
         fn to_tex(&self, identifier: Option<&'static str>) -> String {
             self.clone().to_matrix().to_tex(identifier)
         }
     }
 
-    impl<T: CompliantNumerical + Display, const FRAME: usize> ToTex for Coord<T, FRAME> {
+    impl<T: CompliantNumerical + ToTex, const FRAME: usize> ToTex for Coord<T, FRAME> {
         fn to_tex(&self, identifier: Option<&'static str>) -> String {
             self.rpr.to_tex(identifier)
         }
@@ -104,13 +104,18 @@ pub mod decorators {
             intermediate.to_matlab(identifier)
         }
     }
-    impl<T: CompliantNumerical + Display + Trig, const PREV: usize, const CURR: usize> ToTex
+    impl<T: CompliantNumerical + ToTex + Trig, const PREV: usize, const CURR: usize> ToTex
         for Pose<T, PREV, CURR>
     {
         fn to_tex(&self, identifier: Option<&'static str>) -> String {
             let intermediate: &Matrix<T, 4, 4> = self.into();
 
             intermediate.to_tex(identifier)
+        }
+    }
+    impl ToTex for f32{
+        fn to_tex(&self, _identifier: Option<&'static str>) -> String {
+            self.to_string()
         }
     }
 }
