@@ -48,7 +48,7 @@ pub mod decorators {
 
                 for (idx, el) in row.iter().enumerate() {
                     if idx < max {
-                        ret += format!("{} & ",el.to_tex(None)).as_str();
+                        ret += format!("{} & ", el.to_tex(None)).as_str();
                     } else {
                         ret += el.to_tex(None).to_string().as_str();
                     }
@@ -113,7 +113,7 @@ pub mod decorators {
             intermediate.to_tex(identifier)
         }
     }
-    impl ToTex for f32{
+    impl ToTex for f32 {
         fn to_tex(&self, _identifier: Option<&'static str>) -> String {
             self.to_string()
         }

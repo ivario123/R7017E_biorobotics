@@ -1,5 +1,4 @@
-
-use std::fmt::{Display};
+use std::fmt::Display;
 
 use crate::decore::decorators::ToTex;
 
@@ -68,8 +67,12 @@ impl ToTex for Operation {
         match self {
             Self::Sin(s) => format!(" sin\\left({}\\right) ", s.to_tex(None)),
             Self::Cos(s) => format!(" cos\\left({}\\right) ", s.to_tex(None)),
-            Self::Rem(s1, s2) => format!(" {}%{} ",s1.to_tex(None),s2.to_tex(None)),
-            Self::Mul(s1, s2) => format!(" \\left({}\\cdot {}\\right) ", s1.to_tex(None), s2.to_tex(None)),
+            Self::Rem(s1, s2) => format!(" {}%{} ", s1.to_tex(None), s2.to_tex(None)),
+            Self::Mul(s1, s2) => format!(
+                " \\left({}\\cdot {}\\right) ",
+                s1.to_tex(None),
+                s2.to_tex(None)
+            ),
             Self::Prod(els) => format!(
                 " \\left({}\\right) ",
                 els.iter()
@@ -78,8 +81,12 @@ impl ToTex for Operation {
                     .join(" \\cdot ")
             ),
             Self::Div(s1, s2) => format!(" \\frac{{{}}}{{{}}} ", s1.to_tex(None), s2.to_tex(None)),
-            Self::Sub(s1, s2) => format!(" \\left({}-{}\\right) ", s1.to_tex(None), s2.to_tex(None)),
-            Self::Add(s1, s2) => format!(" \\left({}+{}\\right) ", s1.to_tex(None), s2.to_tex(None)),
+            Self::Sub(s1, s2) => {
+                format!(" \\left({}-{}\\right) ", s1.to_tex(None), s2.to_tex(None))
+            }
+            Self::Add(s1, s2) => {
+                format!(" \\left({}+{}\\right) ", s1.to_tex(None), s2.to_tex(None))
+            }
             Self::Sum(els) => format!(
                 " \\left({}\\right) ",
                 els.iter()
@@ -88,7 +95,7 @@ impl ToTex for Operation {
                     .join("+")
             ),
             Self::Sqrt(s) => format!(" \\sqrt{{{}}} ", s.to_tex(None)),
-            Self::UnSub(s) => format!( "-{}", s.to_tex(None)),
+            Self::UnSub(s) => format!("-{}", s.to_tex(None)),
         }
     }
 }

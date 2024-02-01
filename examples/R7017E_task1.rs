@@ -8,12 +8,12 @@ use robotics::{
 };
 
 fn task4() {
-    let p0_1 = Pose::<f32,0, 1>::from_translation(Vector::new_from_data([3f32, 0f32, 0f32]));
-    let p1_2 = Pose::<f32,1, 2>::rot(rotz(PI / 2f32).unwrap());
+    let p0_1 = Pose::<f32, 0, 1>::from_translation(Vector::new_from_data([3f32, 0f32, 0f32]));
+    let p1_2 = Pose::<f32, 1, 2>::rot(rotz(PI / 2f32).unwrap());
     let (rot, _t) = p1_2.clone().decompose();
 
     let translation = rot.clone().transpose() * Vector::new_from_data([0f32, 1f32, 0f32]);
-    let p2_3 = Pose::<f32,2, 3>::from_translation(translation);
+    let p2_3 = Pose::<f32, 2, 3>::from_translation(translation);
     println!("p2_3:\n{p2_3}");
 
     // Composite transform calculation

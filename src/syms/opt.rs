@@ -5,207 +5,192 @@ use crate::{pose::Pose, syms::SignInversion};
 
 use self::sealed::OptInner;
 
-use super::{Sym, Operation};
-
-
-
+use super::{Operation, Sym};
 
 mod sealed {
     use crate::syms::Sym;
-    pub trait OptInner{
-        fn opt_inner(&mut self) -> Vec<&Sym >;
+    pub trait OptInner {
+        fn opt_inner(&mut self) -> Vec<&Sym>;
     }
 }
-pub trait Opt:OptInner
-where Self:Sized{
-    fn opt(mut self) -> Self{
+pub trait Opt: OptInner
+where
+    Self: Sized,
+{
+    fn opt(mut self) -> Self {
         let _ = self.opt_inner();
         self
     }
 }
 
-
-impl<const PREV:usize,const CURR:usize> OptInner for Pose<Sym,PREV,CURR>{
-    fn opt_inner<'a>(&'a mut self) -> Vec<&'a Sym > {
-        let m:&'a mut Matrix<Sym,4,4> = self.into();
-        for row in 0..4{
-            for col in 0..4{
-                let _ = m[(row,col)].opt_inner();
+impl<const PREV: usize, const CURR: usize> OptInner for Pose<Sym, PREV, CURR> {
+    fn opt_inner<'a>(&'a mut self) -> Vec<&'a Sym> {
+        let m: &'a mut Matrix<Sym, 4, 4> = self.into();
+        for row in 0..4 {
+            for col in 0..4 {
+                let _ = m[(row, col)].opt_inner();
             }
         }
         vec![]
     }
 }
-impl<const PREV:usize,const CURR:usize> Opt for Pose<Sym,PREV,CURR>{}
+impl<const PREV: usize, const CURR: usize> Opt for Pose<Sym, PREV, CURR> {}
 
-impl Opt for Sym{}
-impl OptInner for Sym{
+impl Opt for Sym {}
+impl OptInner for Sym {
     fn opt_inner(&mut self) -> Vec<&Sym> {
-        
-        match self{
-            Sym::Number(_) => {vec![]},
-            Sym::Identifier(_) => {vec![self]},
-            Sym::Operation(op) => {
-                op.opt_inner()
-            },
-            Sym::Constant(_) => vec![self]
+        match self {
+            Sym::Number(_) => {
+                vec![]
+            }
+            Sym::Identifier(_) => {
+                vec![self]
+            }
+            Sym::Operation(op) => op.opt_inner(),
+            Sym::Constant(_) => vec![self],
         }
     }
 }
-impl Opt for Operation{}
-impl OptInner for Operation{
+impl Opt for Operation {}
+impl OptInner for Operation {
     fn opt_inner(&mut self) -> Vec<&Sym> {
-        match self{
-            Self::Add(lhs,rhs) => {
+        match self {
+            Self::Add(lhs, rhs) => {
                 let _ = lhs.opt_inner();
                 let _ = rhs.opt_inner();
                 if lhs == rhs {
                     *self = Operation::Mul(Sym::Number(2f32), lhs.clone());
                     // Early return to not cause indentation hell
-                    return vec![]
+                    return vec![];
                 }
                 if rhs.clone().sing_inversion() == *lhs {
                     *self = Self::UnSub(Sym::zero());
-                    return vec![]
+                    return vec![];
                 }
-                match (lhs.clone(),rhs.clone()) {
-                    (Sym::Operation(o1), Sym::Operation(o2)) => {
-                        match (*o1.clone(),*o2.clone()) {
-                            (Operation::Sum(mut els),Operation::Sum(els2)) => {
-                                els.extend(els2);
-                                *self = Self::Sum(els);
-                                let _ = self.opt_inner();
-                            }
-                            (Operation::Sum(mut els),e)|(e,Operation::Sum(mut els)) => {
-                                els.push(Sym::Operation(Box::new(e)));
-                                *self = Self::Sum(els);
-                                let _ = self.opt_inner();
-                            }
-                            (Operation::Add(lhs_1,rhs_1),el) | (el,Operation::Add(lhs_1,rhs_1)) => {
-                                let els = vec![
-                                    lhs_1,rhs_1,Sym::Operation(Box::new(el))
-                                ];
-                                *self = Self::Sum(els);
-                                let _ = self.opt_inner();
-                            }
-                            _ => {}
-
-
+                match (lhs.clone(), rhs.clone()) {
+                    (Sym::Operation(o1), Sym::Operation(o2)) => match (*o1.clone(), *o2.clone()) {
+                        (Operation::Sum(mut els), Operation::Sum(els2)) => {
+                            els.extend(els2);
+                            *self = Self::Sum(els);
+                            let _ = self.opt_inner();
                         }
-                    }
-                    (el,Sym::Operation(o)) | (Sym::Operation(o),el) => {
+                        (Operation::Sum(mut els), e) | (e, Operation::Sum(mut els)) => {
+                            els.push(Sym::Operation(Box::new(e)));
+                            *self = Self::Sum(els);
+                            let _ = self.opt_inner();
+                        }
+                        (Operation::Add(lhs_1, rhs_1), el) | (el, Operation::Add(lhs_1, rhs_1)) => {
+                            let els = vec![lhs_1, rhs_1, Sym::Operation(Box::new(el))];
+                            *self = Self::Sum(els);
+                            let _ = self.opt_inner();
+                        }
+                        _ => {}
+                    },
+                    (el, Sym::Operation(o)) | (Sym::Operation(o), el) => {
                         if let Operation::UnSub(s) = *o.clone() {
-                            *self = Operation::Sub(el,s)
+                            *self = Operation::Sub(el, s)
                         }
                     }
                     _ => {}
                 }
-                
-                
             }
-            Self::Sub(lhs,rhs) => {
+            Self::Sub(lhs, rhs) => {
                 let _ = lhs.opt_inner();
                 let _ = rhs.opt_inner();
-                if lhs == rhs  {
+                if lhs == rhs {
                     *self = Operation::UnSub(Sym::Number(0f32));
                     return vec![];
                 }
                 if rhs.clone().sing_inversion() == *lhs {
                     *self = Self::UnSub(Sym::zero());
-                    return vec![]
+                    return vec![];
                 }
-                match (lhs.clone(),rhs.clone()) {
-                    (el,Sym::Operation(o)) | (Sym::Operation(o),el) => {
+                match (lhs.clone(), rhs.clone()) {
+                    (el, Sym::Operation(o)) | (Sym::Operation(o), el) => {
                         if let Operation::UnSub(s) = *o.clone() {
-                            *self = Operation::Add(el,s)
+                            *self = Operation::Add(el, s)
                         }
                     }
                     _ => {}
                 }
             }
-            Self::Div(lhs,rhs) => {
+            Self::Div(lhs, rhs) => {
                 let _ = lhs.opt_inner();
                 let _ = rhs.opt_inner();
             }
             Self::UnSub(s) => {
                 let _ = s.opt_inner();
             }
-            Self::Mul(lhs,rhs) => {
+            Self::Mul(lhs, rhs) => {
                 let _ = lhs.opt_inner();
                 let _ = rhs.opt_inner();
-                match (lhs.clone(),rhs.clone()) {
-                    (el,Sym::Operation(o))|(Sym::Operation(o),el) => {
+                match (lhs.clone(), rhs.clone()) {
+                    (el, Sym::Operation(o)) | (Sym::Operation(o), el) => {
                         if let Operation::UnSub(s) = *o {
-                            *self = Operation::UnSub(Sym::Operation(Box::new(Self::Mul(el,s))));
+                            *self = Operation::UnSub(Sym::Operation(Box::new(Self::Mul(el, s))));
                             let _ = self.opt_inner();
-                            return vec![]
+                            return vec![];
                         }
                     }
                     _ => {}
                 }
-                match (lhs,rhs)  {
-                    (Sym::Operation(lhs),Sym::Operation(rhs)) => {
-                        match (*lhs.clone(),*rhs.clone()) {
-                            (Self::Mul(lhs_l, lhs_r),Self::Mul(rhs_l, rhs_r)) => {
-                                *self = Self::Prod(vec![lhs_l,lhs_r,rhs_l,rhs_r])
+                match (lhs, rhs) {
+                    (Sym::Operation(lhs), Sym::Operation(rhs)) => {
+                        match (*lhs.clone(), *rhs.clone()) {
+                            (Self::Mul(lhs_l, lhs_r), Self::Mul(rhs_l, rhs_r)) => {
+                                *self = Self::Prod(vec![lhs_l, lhs_r, rhs_l, rhs_r])
                             }
-                            (s,Self::Mul(rhs_l, rhs_r)) => {
-                                *self = Self::Prod(vec![Sym::Operation(Box::new(s)),rhs_l,rhs_r])
-
+                            (s, Self::Mul(rhs_l, rhs_r)) => {
+                                *self = Self::Prod(vec![Sym::Operation(Box::new(s)), rhs_l, rhs_r])
                             }
-                            (Self::Mul(lhs_l, lhs_r),s) => {
-                                *self = Self::Prod(vec![lhs_l,lhs_r,Sym::Operation(Box::new(s))])
+                            (Self::Mul(lhs_l, lhs_r), s) => {
+                                *self = Self::Prod(vec![lhs_l, lhs_r, Sym::Operation(Box::new(s))])
                             }
-                            (Self::Prod(mut sl),Self::Prod(sr)) => {
+                            (Self::Prod(mut sl), Self::Prod(sr)) => {
                                 sl.extend(sr);
                                 *self = Self::Prod(sl);
                             }
-                            (Self::Prod(mut s),r) => {
+                            (Self::Prod(mut s), r) => {
                                 s.push(Sym::Operation(Box::new(r)));
                                 *self = Self::Prod(s);
                             }
-                            (l,Self::Prod(mut s)) => {
-                                s.insert(0,Sym::Operation(Box::new(l)));
+                            (l, Self::Prod(mut s)) => {
+                                s.insert(0, Sym::Operation(Box::new(l)));
                                 *self = Self::Prod(s);
                             }
 
                             _ => {}
                         }
                     }
-                    (Sym::Operation(lhs_o),s) => {
-                        match *lhs_o.clone() {
-                            Self::Mul(lhs_l, lhs_r)=> {
-                                *self = Self::Prod(vec![lhs_l,lhs_r,s.clone()]);
-                            }
-                            Self::Prod(mut els) => {
-                                els.push(s.clone());
-                                *self = Self::Prod(els.clone())
-                            }
-                            _ => {}
+                    (Sym::Operation(lhs_o), s) => match *lhs_o.clone() {
+                        Self::Mul(lhs_l, lhs_r) => {
+                            *self = Self::Prod(vec![lhs_l, lhs_r, s.clone()]);
                         }
-
-                    }
-                    (s,Sym::Operation(rhs_o)) => {
-                        match *rhs_o.clone() {
-                            Self::Mul(rhs_l, rhs_r)=> {
-                                *self = Self::Prod(vec![s.clone(),rhs_l,rhs_r]);
-                            }
-                            Self::Prod(mut els) => {
-                                els.insert(0,s.clone());
-                                *self = Self::Prod(els.clone())
-                            }
-                            _ => {}
+                        Self::Prod(mut els) => {
+                            els.push(s.clone());
+                            *self = Self::Prod(els.clone())
                         }
-                    }
-                    _ => {} 
+                        _ => {}
+                    },
+                    (s, Sym::Operation(rhs_o)) => match *rhs_o.clone() {
+                        Self::Mul(rhs_l, rhs_r) => {
+                            *self = Self::Prod(vec![s.clone(), rhs_l, rhs_r]);
+                        }
+                        Self::Prod(mut els) => {
+                            els.insert(0, s.clone());
+                            *self = Self::Prod(els.clone())
+                        }
+                        _ => {}
+                    },
+                    _ => {}
                 }
             }
             Self::Prod(els) => {
-                for el in els{
+                for el in els {
                     let _ = el.opt_inner();
                 }
             }
-            Self::Rem(_lhs,_rhs) => {}
+            Self::Rem(_lhs, _rhs) => {}
             Self::Cos(s) => {
                 let _ = s.opt_inner();
             }
@@ -214,18 +199,13 @@ impl OptInner for Operation{
             }
             Self::Sqrt(s) => {
                 let _ = s.opt_inner();
-            } 
+            }
             Self::Sum(els) => {
                 for s in els {
                     let _ = s.opt_inner();
                 }
             }
-
-
         }
         vec![]
-
     }
 }
-
-

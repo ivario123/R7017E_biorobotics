@@ -159,11 +159,7 @@ impl<T: CompliantNumerical + Trig, const FRAME: usize> From<Vector<T, 3>> for Co
 }
 impl<T: CompliantNumerical + Trig, const FRAME: usize> From<Coord<T, FRAME>> for Vector<T, 3> {
     fn from(val: Coord<T, FRAME>) -> Self {
-        let data = [
-            val.rpr[0].clone(),
-            val.rpr[1].clone(),
-            val.rpr[2].clone(),
-        ];
+        let data = [val.rpr[0].clone(), val.rpr[1].clone(), val.rpr[2].clone()];
         Vector::new_from_data(data)
     }
 }

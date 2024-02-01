@@ -1,7 +1,7 @@
 use crate::pose::{Coord, Pose};
 use matrs::vec::Vector;
-use plotly::common::{LegendGroupTitle};
-use plotly::plot::{Trace};
+use plotly::common::LegendGroupTitle;
+use plotly::plot::Trace;
 use plotly::{layout::Annotation, Scatter3D};
 
 pub trait Plottable {
