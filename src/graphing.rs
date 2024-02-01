@@ -1,8 +1,8 @@
 use crate::pose::{Coord, Pose};
 use matrs::vec::Vector;
-use plotly::common::{LegendGroupTitle, TextPosition};
-use plotly::plot::{Trace, Traces};
-use plotly::{common::TextAnchor, layout::Annotation, Scatter3D};
+use plotly::common::{LegendGroupTitle};
+use plotly::plot::{Trace};
+use plotly::{layout::Annotation, Scatter3D};
 
 pub trait Plottable {
     fn plot(&self) -> (Vec<Box<dyn Trace>>, Vec<Annotation>);
@@ -21,7 +21,7 @@ impl Plottable for Coord<f32, 0> {
 
 fn plot_vec(
     ret: &mut Vec<Box<dyn Trace>>,
-    annotations: &mut Vec<Annotation>,
+    _annotations: &mut [Annotation],
     start: Vector<f32, 3>,
     end: Vector<f32, 3>,
     identifier: &str,
@@ -29,7 +29,7 @@ fn plot_vec(
     let xs = vec![start[0], end[0]];
     let ys = vec![start[1], end[1]];
     let zs = vec![start[2], end[2]];
-    let mut res = Scatter3D::new(xs, ys, zs)
+    let res = Scatter3D::new(xs, ys, zs)
         .mode(plotly::common::Mode::Lines)
         .legend_group_title(LegendGroupTitle::new(identifier));
     ret.append(&mut vec![res.text("end")])

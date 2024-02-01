@@ -128,7 +128,7 @@ impl<T: CompliantNumerical + Trig, const PREV: usize, const CURR: usize> Pose<T,
         let x: Vector<T, 3> = (self * x).into();
         let y: Vector<T, 3> = (self * y).into();
         let z: Vector<T, 3> = (self * z).into();
-        return (origin, x, y, z);
+        (origin, x, y, z)
     }
 }
 
@@ -157,12 +157,12 @@ impl<T: CompliantNumerical + Trig, const FRAME: usize> From<Vector<T, 3>> for Co
         }
     }
 }
-impl<T: CompliantNumerical + Trig, const FRAME: usize> Into<Vector<T, 3>> for Coord<T, FRAME> {
-    fn into(self) -> Vector<T, 3> {
+impl<T: CompliantNumerical + Trig, const FRAME: usize> From<Coord<T, FRAME>> for Vector<T, 3> {
+    fn from(val: Coord<T, FRAME>) -> Self {
         let data = [
-            self.rpr[0].clone(),
-            self.rpr[1].clone(),
-            self.rpr[2].clone(),
+            val.rpr[0].clone(),
+            val.rpr[1].clone(),
+            val.rpr[2].clone(),
         ];
         Vector::new_from_data(data)
     }
@@ -226,16 +226,16 @@ impl<T: CompliantNumerical + Trig, const REF: usize> core::ops::Sub for Coord<T,
 }
 
 impl<'a, T: CompliantNumerical + Trig, const PREV: usize, const CURR: usize>
-    Into<&'a Matrix<T, 4, 4>> for &'a Pose<T, PREV, CURR>
+    From<&'a Pose<T, PREV, CURR>> for &'a Matrix<T, 4, 4>
 {
-    fn into(self) -> &'a Matrix<T, 4, 4> {
-        &self.rpr
+    fn from(val: &'a Pose<T, PREV, CURR>) -> Self {
+        &val.rpr
     }
 }
 impl<'a, T: CompliantNumerical + Trig, const PREV: usize, const CURR: usize>
-    Into<&'a mut Matrix<T, 4, 4>> for &'a mut Pose<T, PREV, CURR>
+    From<&'a mut Pose<T, PREV, CURR>> for &'a mut Matrix<T, 4, 4>
 {
-    fn into(self) -> &'a mut Matrix<T, 4, 4> {
-        &mut self.rpr
+    fn from(val: &'a mut Pose<T, PREV, CURR>) -> Self {
+        &mut val.rpr
     }
 }

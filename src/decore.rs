@@ -50,7 +50,7 @@ pub mod decorators {
                     if idx < max {
                         ret += format!("{} & ",el.to_tex(None)).as_str();
                     } else {
-                        ret += format!("{}",el.to_tex(None)).as_str();
+                        ret += el.to_tex(None).to_string().as_str();
                     }
                 }
                 ret += "\\\\\n";

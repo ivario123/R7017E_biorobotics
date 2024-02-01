@@ -13,7 +13,7 @@ use super::{Sym, Operation};
 mod sealed {
     use crate::syms::Sym;
     pub trait OptInner{
-        fn opt_inner<'a>(&'a mut self) -> Vec<&'a Sym >;
+        fn opt_inner(&mut self) -> Vec<&Sym >;
     }
 }
 pub trait Opt:OptInner
@@ -40,7 +40,7 @@ impl<const PREV:usize,const CURR:usize> Opt for Pose<Sym,PREV,CURR>{}
 
 impl Opt for Sym{}
 impl OptInner for Sym{
-    fn opt_inner<'a>(&'a mut self) -> Vec<&'a Sym> {
+    fn opt_inner(&mut self) -> Vec<&Sym> {
         
         match self{
             Sym::Number(_) => {vec![]},
@@ -54,7 +54,7 @@ impl OptInner for Sym{
 }
 impl Opt for Operation{}
 impl OptInner for Operation{
-    fn opt_inner<'a>(&'a mut self) -> Vec<&'a Sym> {
+    fn opt_inner(&mut self) -> Vec<&Sym> {
         match self{
             Self::Add(lhs,rhs) => {
                 let _ = lhs.opt_inner();
@@ -94,12 +94,8 @@ impl OptInner for Operation{
                         }
                     }
                     (el,Sym::Operation(o)) | (Sym::Operation(o),el) => {
-                        match *o.clone() {
-                            Operation::UnSub(s) => {
-                                *self = Operation::Sub(el,s)
-                            }
-                            _ => {}
-
+                        if let Operation::UnSub(s) = *o.clone() {
+                            *self = Operation::Sub(el,s)
                         }
                     }
                     _ => {}
@@ -120,12 +116,8 @@ impl OptInner for Operation{
                 }
                 match (lhs.clone(),rhs.clone()) {
                     (el,Sym::Operation(o)) | (Sym::Operation(o),el) => {
-                        match *o.clone() {
-                            Operation::UnSub(s) => {
-                                *self = Operation::Add(el,s)
-                            }
-                            _ => {}
-
+                        if let Operation::UnSub(s) = *o.clone() {
+                            *self = Operation::Add(el,s)
                         }
                     }
                     _ => {}

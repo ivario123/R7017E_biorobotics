@@ -1,11 +1,11 @@
 use matrs::{
     matrix::helpers::rotations::*, matrix::rotations::Trig, predule::*, CompliantNumerical,
 };
-use std::fmt::{Alignment, Display};
+
 use std::ops::Mul;
 
 use crate::decore::decorators::ToTex;
-use crate::pose::{Coord, Pose};
+use crate::pose::{Pose};
 
 // pub struct Link<const IDX: usize,L:CompliantNumerical+Trig,> {
 //      length:
@@ -72,6 +72,21 @@ pub struct DHParams<
     a: A,
     alpha: Alpha,
 }
+impl<
+        const THETA: bool,
+        const D: bool,
+        const A: bool,
+        const ALPHA: bool,
+        Thetat: CompliantNumerical + Trig,
+        Dt: CompliantNumerical + Trig,
+        At: CompliantNumerical + Trig,
+        Alphat: CompliantNumerical + Trig,
+    > Default for DHBuilder<THETA, D, A, ALPHA, Thetat, Dt, At, Alphat> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<
         const THETA: bool,
         const D: bool,

@@ -2,10 +2,10 @@
 pub mod opt;
 pub mod display;
 use core::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Rem, RemAssign, Sub, SubAssign};
-pub use display::*;
+
 pub use opt::*;
 use matrs::{matrix::rotations::Trig, CompliantNumerical};
-use std::{boxed, f32::consts::PI};
+
 
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub enum Operation {
@@ -52,10 +52,7 @@ impl SignInversion for Sym {
     fn negative(&self) -> bool {
         match self {
             Self::Number(n) => *n < 0f32,
-            Self::Operation(o) => match **o {
-                Operation::UnSub(_) => true,
-                _ => false,
-            },
+            Self::Operation(o) => matches!(**o, Operation::UnSub(_)),
             _ => false,
         }
     }
@@ -79,10 +76,7 @@ impl Trig for Sym {
     }
     fn sine(self) -> Self {
         match self.clone() {
-            Self::Operation(op) => match *op {
-                Operation::Cos(el) => return el,
-                _ => {}
-            },
+            Self::Operation(op) => if let Operation::Cos(el) = *op { return el },
             // Exact values
             Self::Number(n) => {
                 return Self::Number(n.sin())
@@ -94,10 +88,7 @@ impl Trig for Sym {
     }
     fn cosine(self) -> Self {
         match self.clone() {
-            Self::Operation(op) => match *op {
-                Operation::Sin(el) => return el,
-                _ => {}
-            },
+            Self::Operation(op) => if let Operation::Sin(el) = *op { return el },
             // Exact values
             Self::Number(n) => {
                 return Self::Number(n.cos())
@@ -163,10 +154,7 @@ impl Add for Sym {
         if rhs == Self::Number(0f32) {
             return self;
         }
-        match (&self,&rhs) {
-            (Sym::Number(n1),Sym::Number(n2)) =>return Sym::Number(n1+n2),
-            _ => {}
-        }
+        if let (Sym::Number(n1),Sym::Number(n2)) = (&self,&rhs) { return Sym::Number(n1+n2) }
 
 
         Sym::Operation(Box::new(Operation::Add(self, rhs)))
@@ -181,10 +169,7 @@ impl Sub for Sym {
         if self == Self::Number(0f32) {
             return Self::Operation(Box::new(Operation::UnSub(rhs)));
         }
-        match (&self,&rhs) {
-            (Sym::Number(n1),Sym::Number(n2)) =>return Sym::Number(n1-n2),
-            _ => {}
-        }
+        if let (Sym::Number(n1),Sym::Number(n2)) = (&self,&rhs) { return Sym::Number(n1-n2) }
 
 
         Sym::Operation(Box::new(Operation::Sub(self, rhs)))
@@ -208,10 +193,7 @@ impl Div for Sym {
                 lhs = lhs.sing_inversion();
             }
         }
-        match (&lhs,&rhs) {
-            (Sym::Number(n1),Sym::Number(n2)) =>return Sym::Number(n1/n2),
-            _ => {}
-        }
+        if let (Sym::Number(n1),Sym::Number(n2)) = (&lhs,&rhs) { return Sym::Number(n1/n2) }
 
 
         Sym::Operation(Box::new(Operation::Div(lhs, rhs)))
@@ -245,10 +227,7 @@ impl Mul for Sym {
         if rhs == Self::Number(1f32) {
             return lhs;
         }
-        match (&lhs,&rhs) {
-            (Sym::Number(n1),Sym::Number(n2)) =>return Sym::Number(n1*n2),
-            _ => {}
-        }
+        if let (Sym::Number(n1),Sym::Number(n2)) = (&lhs,&rhs) { return Sym::Number(n1*n2) }
 
         Sym::Operation(Box::new(Operation::Mul(lhs, rhs)))
     }
@@ -291,7 +270,7 @@ impl RemAssign for Sym {
 }
 impl num_traits::Num for Sym {
     type FromStrRadixErr = ();
-    fn from_str_radix(str: &str, radix: u32) -> Result<Self, Self::FromStrRadixErr> {
+    fn from_str_radix(_str: &str, _radix: u32) -> Result<Self, Self::FromStrRadixErr> {
         todo!()
     }
 }

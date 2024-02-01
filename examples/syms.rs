@@ -2,10 +2,9 @@ use core::f32::consts::PI;
 use matrs::matrix::helpers::rotations::*;
 use matrs::predule::*;
 use num_traits::Zero;
-use plotly::{Layout, Plot};
+
 use robotics::{
     decore::decorators::{ToMatlab, ToTex},
-    graphing::Plottable,
     pose::Pose,
     syms::*,
 };

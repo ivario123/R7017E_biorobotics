@@ -1,5 +1,5 @@
-use std::fmt::format;
-use std::fmt::{write, Display};
+
+use std::fmt::{Display};
 
 use crate::decore::decorators::ToTex;
 
@@ -83,7 +83,7 @@ impl ToTex for Operation {
             Self::Sum(els) => format!(
                 " \\left({}\\right) ",
                 els.iter()
-                    .map(|e| format!("{}", e.to_tex(None)))
+                    .map(|e| e.to_tex(None).to_string())
                     .collect::<Vec<String>>()
                     .join("+")
             ),
@@ -98,9 +98,9 @@ impl ToTex for Sym {
         match self {
             Self::Number(n) => format!("{}", n),
             // Assumes identifier to be propperly formated
-            Self::Identifier(i) => format!("{}", i),
-            Self::Constant(c) => format!("{}", c.to_tex(None)),
-            Self::Operation(op) => format!("{}", op.to_tex(None)),
+            Self::Identifier(i) => i.to_string(),
+            Self::Constant(c) => c.to_tex(None).to_string(),
+            Self::Operation(op) => op.to_tex(None).to_string(),
         }
     }
 }
