@@ -18,11 +18,14 @@ pub enum Operation {
     Rem(Sym, Sym),
     Cos(Sym),
     Sin(Sym),
+    Nop(Sym),
 }
+
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub enum Constant {
     Pi,
 }
+
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub enum Sym {
     Number(f32),
@@ -34,6 +37,22 @@ pub enum Sym {
 pub trait SignInversion {
     fn sing_inversion(self) -> Self;
     fn negative(&self) -> bool;
+}
+
+impl Into<Sym> for f32{
+    fn into(self) -> Sym {
+        Sym::Number(self)
+    }
+}
+impl Into<Sym> for &'static str{
+    fn into(self) -> Sym {
+        Sym::Identifier(self)
+    }
+}
+impl Into<Sym> for Constant{
+    fn into(self) -> Sym {
+        Sym::Constant(self)
+    }
 }
 
 impl SignInversion for Sym {
@@ -78,9 +97,13 @@ impl Trig for Sym {
                 if let Operation::Cos(el) = *op {
                     return el;
                 }
+                if let Operation::UnSub(Self::Constant(Constant::Pi)) = *op{
+                    return Self::Number(0f32);
+                }
             }
             // Exact values
             Self::Number(n) => return Self::Number(n.sin()),
+            Self::Constant(Constant::Pi) => return  Self::Number(0f32),
             _ => {}
         }
         Self::Operation(Box::new(Operation::Sin(self)))
@@ -91,9 +114,13 @@ impl Trig for Sym {
                 if let Operation::Sin(el) = *op {
                     return el;
                 }
+                if let Operation::UnSub(Self::Constant(Constant::Pi)) = *op{
+                    return Self::Number(-1f32);
+                }
             }
             // Exact values
             Self::Number(n) => return Self::Number(n.cos()),
+            Self::Constant(Constant::Pi) => return  Self::Number(1f32),
             _ => {}
         }
         Self::Operation(Box::new(Operation::Cos(self)))
@@ -302,7 +329,23 @@ impl num_traits::Zero for Sym {
 
 #[macro_export]
 macro_rules! sym {
+    ($id:ident) => {
+        {
+            let intermediate: Sym = $id.into();
+            intermediate
+        }    
+    };
+    (Constant::$id:ident) => {
+        {
+            use robotics::syms::Constant;
+            let intermediate: Sym = Constant::$id.into();
+            intermediate
+        }    
+    };
     ($id:literal) => {
-        Sym::Identifier($id)
+        {
+            let intermediate: Sym = $id.into();
+            intermediate
+        }    
     };
 }

@@ -10,6 +10,7 @@ matrs = {git = "https://github.com/ivario123/matrix_math.git"}
 plotly = { version = "0.8.4", features = ["kaleido"]}
 num = {version = "0.4.0",default-features = false}
 num-traits = { version = "0.2", default-features = false, features = ["libm"] }
+array-init = "2.1.0"
 
 
 [features]

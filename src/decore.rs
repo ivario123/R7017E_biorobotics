@@ -12,7 +12,10 @@ pub mod decorators {
         fn to_matlab(&self, identifier: &'static str) -> String;
     }
     pub trait ToTex {
-        fn to_tex(&self, identifier: Option<&'static str>) -> String;
+        fn to_tex(&self,identifier: Option<&'static str>) -> String{
+            self.to_tex_internal(identifier,true)
+        }
+        fn to_tex_internal(&self, identifier: Option<&'static str>,first:bool) -> String;
     }
     impl<T: CompliantNumerical + Display, const M: usize, const N: usize> ToMatlab for Matrix<T, M, N> {
         fn to_matlab(&self, identifier: &'static str) -> String {
@@ -34,7 +37,7 @@ pub mod decorators {
         }
     }
     impl<T: CompliantNumerical + ToTex, const M: usize, const N: usize> ToTex for Matrix<T, M, N> {
-        fn to_tex(&self, identifier: Option<&'static str>) -> String {
+        fn to_tex_internal(&self, identifier: Option<&'static str>,first:bool) -> String {
             let has_identifer = identifier.is_some();
             let identifier = identifier.unwrap_or("");
             let mut ret = format!("\\begin{{equation}}\\label{{ {identifier} }}\n\t");
@@ -48,9 +51,9 @@ pub mod decorators {
 
                 for (idx, el) in row.iter().enumerate() {
                     if idx < max {
-                        ret += format!("{} & ", el.to_tex(None)).as_str();
+                        ret += format!("{} & ", el.to_tex_internal(None,true)).as_str();
                     } else {
-                        ret += el.to_tex(None).to_string().as_str();
+                        ret += el.to_tex_internal(None,true).to_string().as_str();
                     }
                 }
                 ret += "\\\\\n";
@@ -84,14 +87,14 @@ pub mod decorators {
     }
 
     impl<T: CompliantNumerical + ToTex, const COUNT: usize> ToTex for Vector<T, COUNT> {
-        fn to_tex(&self, identifier: Option<&'static str>) -> String {
-            self.clone().to_matrix().to_tex(identifier)
+        fn to_tex_internal(&self, identifier: Option<&'static str>,first:bool) -> String {
+            self.clone().to_matrix().to_tex_internal(identifier,first)
         }
     }
 
     impl<T: CompliantNumerical + ToTex, const FRAME: usize> ToTex for Coord<T, FRAME> {
-        fn to_tex(&self, identifier: Option<&'static str>) -> String {
-            self.rpr.to_tex(identifier)
+        fn to_tex_internal(&self, identifier: Option<&'static str>,first:bool) -> String {
+            self.rpr.to_tex_internal(identifier,first)
         }
     }
 
@@ -107,14 +110,14 @@ pub mod decorators {
     impl<T: CompliantNumerical + ToTex + Trig, const PREV: usize, const CURR: usize> ToTex
         for Pose<T, PREV, CURR>
     {
-        fn to_tex(&self, identifier: Option<&'static str>) -> String {
+        fn to_tex_internal(&self, identifier: Option<&'static str>,first:bool) -> String {
             let intermediate: &Matrix<T, 4, 4> = self.into();
 
-            intermediate.to_tex(identifier)
+            intermediate.to_tex_internal(identifier,first)
         }
     }
     impl ToTex for f32 {
-        fn to_tex(&self, _identifier: Option<&'static str>) -> String {
+        fn to_tex_internal(&self, _identifier: Option<&'static str>,first:bool) -> String {
             self.to_string()
         }
     }

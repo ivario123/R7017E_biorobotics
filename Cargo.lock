@@ -705,6 +705,7 @@ dependencies = [
 name = "robotics"
 version = "0.1.0"
 dependencies = [
+ "array-init",
  "matrs",
  "num",
  "num-traits",
